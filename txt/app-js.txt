@@ -1,0 +1,63 @@
+1. Si en vez de un string tuvieramos un array de strings en movies.json, deberiamos usar el metodo de some, ej en genre y title:
+const filteredMovies = movies.filter(movie => movie.Genre.some(g => g.toLowerCase() === genre.toLowerCase()))
+const filteredMovies = movies.filter(movie => movie.Title.some(t => t.toLowerCase() === name.toLowerCase()))
+
+
+2. Gracias a express contamos con un middleware como es --> app.use(express.json()) - y podemos capturar la request que estamos haciendo
+para luego realizar o no todo el procedimiento de declarar la variable de body, ir rellenandolo con chunks de datos (porciones de informacion),
+esperar a que termine de traer toda la data mientras se almacena en la variable de body y luego realizar una conversion a JSON si es que la respuesta lo necesita,
+simplificando todo el trabajo que hicimos en el archivo de src/express.js (lineas 24 a 42)
+
+
+3. Aqui utilizamos el status 400 (significa Bad Request) que es el mas comun,
+pero podriamos utilizar el 422 (significa Unprocessable Entity) que significa que el servidor entendio la request, tipos, etc
+pero que a la hora de utilizar la sintaxis que se queria crear no se pudo porque hubo algun problema en las validaciones.
+
+
+4. Lo siguiente (...req.body) no deberia hacerse NUNCA ya que en el body podrian inyectarnos cualquier cosa y romper o violar la seguridad de nuestra peticion.
+
+app.post('/movies/createMovie', (req, res) => {
+   const {
+     title,
+     year,
+     director,
+     genre,
+     rate
+   } = req.body
+
+  const newMovie = {
+    id: crypto.randomUUID(),
+    ...req.body
+  }
+
+  movies.push(newMovie)
+
+  res.status(201).json(newMovie)
+})
+
+==> La forma correct seria:
+
+app.post('/movies/createMovie', (req, res) => {
+  const {
+     title,
+     year,
+     director,
+     genre,
+     rate
+  } = req.body
+
+  const newMovie = {
+     id: crypto.randomUUID(),
+     title,
+     year,
+     director,
+     genre,
+     rate: rate ?? 0
+  }
+
+  movies.push(newMovie)
+
+  res.status(201).json(newMovie)
+})
+
+O tambien la forma utilizando Zod y el schema (forma aplicada)

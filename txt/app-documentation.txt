@@ -1,0 +1,105 @@
+La logica dentro de esta app es sencilla, en sus inicios... api.http es una lista de peticiones que traeran: la pagina principal, todas las peliculas,
+peliculas por id o peliculas por genero y nombre. 
+Dentro del archivo de API.HTTP NO IMPORTA el ORDEN en el que pongamos las consultas ya que las peticiones las haremos nosotros.
+
+Por el contrario, en app.js, si no somos especificos a la hora de crear las URLs se pueden generar problemas, como el que tuve yo.
+El problema es que si yo, en app.js, tengo un GET que maneja una consulta con express donde definimos una ruta como:
+
+
+app.get('/movies/:id', (req, res) => {
+  const { id } = req.params
+
+  const movie = movies.find(movie => movie.imdbID === id)
+  if (movie) return res.json(movie)
+
+  res.status(404).json({ message: 'Movie not found' })
+})
+
+
+Y luego tenemos otra consulta que sea:
+
+
+app.get('/movies/search', (req, res) => {
+  const { genre, name } = req.query
+
+  if (name) {
+    const filteredMovies = movies.filter(movie => movie.Title.toLowerCase().includes(name.toLowerCase()))
+    return res.json(filteredMovies)
+  }
+  if (genre) {
+    const filteredMovies = movies.filter(movie => movie.Genre.toLowerCase().includes(genre.toLowerCase())) // some(g => g.toLowerCase() === genre.toLowerCase()))
+    return res.json(filteredMovies)
+  }
+
+  res.status(404).json({ message: 'Movie not found' })
+})
+
+
+Aunque yo en api.http haga una consulta para --> /movies/search?genre=Action&name=I+Am+Legend ==> Esto no funcionara ya que en API.JS SI IMPORTA el ORDEN
+de las PETICIONES.
+Dado que si nosotros damos una URL tan general como /movies/:id, se confundira la url de search creyendo que el id dinamico que deberia llegar a esa ruta es search.
+
+==> Para solucionar esto tenemos dos opciones, la primera seria cambiar el orden de las peticiones desde las mas especificas a la menos especificas o mas generales, ej:
+
+=======================================================
+
+app.get('/movies/search', (req, res) => {
+  const { genre, name } = req.query
+
+  if (name) {
+    const filteredMovies = movies.filter(movie => movie.Title.toLowerCase().includes(name.toLowerCase()))
+    return res.json(filteredMovies)
+  }
+  if (genre) {
+    const filteredMovies = movies.filter(movie => movie.Genre.toLowerCase().includes(genre.toLowerCase())) // some(g => g.toLowerCase() === genre.toLowerCase()))
+    return res.json(filteredMovies)
+  }
+
+  res.status(404).json({ message: 'Movie not found' })
+})
+
+app.get('/movies/:id', (req, res) => {
+  const { id } = req.params
+
+  const movie = movies.find(movie => movie.imdbID === id)
+  if (movie) return res.json(movie)
+
+  res.status(404).json({ message: 'Movie not found' })
+})
+
+=======================================================
+
+==> La otra manera de solucionar esto, que particularmente a mi me gusta mas, es la de ser mas especifico a la hora de nombrar las URLs para evitar
+estas confusiones internas, ej:
+
+=======================================================
+
+app.get('/movies/byID/:id', (req, res) => {
+  const { id } = req.params
+
+  const movie = movies.find(movie => movie.imdbID === id)
+  if (movie) return res.json(movie)
+
+  res.status(404).json({ message: 'Movie not found' })
+})
+
+app.get('/movies/search', (req, res) => {
+  const { genre, name } = req.query
+
+  if (name) {
+    const filteredMovies = movies.filter(movie => movie.Title.toLowerCase().includes(name.toLowerCase()))
+    return res.json(filteredMovies)
+  }
+  if (genre) {
+    const filteredMovies = movies.filter(movie => movie.Genre.toLowerCase().includes(genre.toLowerCase())) // some(g => g.toLowerCase() === genre.toLowerCase()))
+    return res.json(filteredMovies)
+  }
+
+  res.status(404).json({ message: 'Movie not found' })
+})
+
+=======================================================
+
+==> De esta manera ya tendriamos solucionado el error dado que, o respetamos el orden y, por lo tanto, las consultas irian entrando de acuerdo a URLs mas especificas
+a URLs mas generales o, por el contrario, podriamos no prestarle tanta atencion al orden y ser mas especifico a la hora de nombrar las URLs para que sea mas dificil
+tener este tipo de errores internos.

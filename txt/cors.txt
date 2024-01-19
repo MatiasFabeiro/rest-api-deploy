@@ -1,0 +1,109 @@
+1. El error de CORS (Cross Origin Resoruce Sharing) es cuando a una API no le especificamos que debe hacer ante la peticion de un dominio que no es el de su origen.
+Ej: con servor nosotros levantamos web/index.html y esto se aloja en http://localhost:8080 pero nosotros le dijimos que en el html haga una peticion a
+http://localhost:3000/movies, como los dominios son distintos y nosotros no especificamos como actuar, el navegador rechaza la peticion automaticamente.
+
+==> res.header('Access-Control-Allow-Origin', '*') --> con el asterisco estamos permitiendo que cualquier origen, que no sea nuestro propio origen, esten permitidos.
+
+Otra forma de utilizar el header del CORS es espceificar directamente la ruta que queremos que tenga permiso para realizar una peticion a nuestra api.
+
+==> res.header('Access-Control-Allow-Origin', 'http://localhost:8080') --> asi podemos especificar que si la solicitud llega desde esa url, esta permitida la respuesta.
+
+Tambien se puede crear una constante con todas las url que tengan permiso y solo pasar la constante como argumento.
+
+==> const ACCEPTED_ORIGINS = [
+  'http://localhost:3000',
+  'http://localhost:8080',
+  'http://localhost:1234'
+]
+
+const origin = req.header('origin')
+
+if(ACCEPTED_ORIGINS.includes(origin)){
+  res.header('Access-Control-Allow-Origin', '${origin}')
+}
+
+Cuando la peticion es del MISMO ORIGIN, NO se va a enviar la cabecera de header, ej:
+
+==> http://localhost:3000 --> http://localhost:3000 --> mismo origen
+
+Para corregir esto simplemente deberiamos hacer una excepcion mas en el if:
+
+==> if(ACCEPTED_ORIGINS.includes(origin) || !origin){
+  res.header('Access-Control-Allow-Origin', '${origin}')
+}
+
+
+2. A la hora de utilizar metodos, tambien podemos tener errores de CORS. Los metodos podemos dividirlos en dos tipos:
+
+==> métodos normales: GET/HEAD/POST
+==> métodos complejos: PUT/PATCH/DELETE
+
+En los metodos complejos se utiliza otro tipo de CORS que es el CORS PRE-Flight el cual requiere una peticion especial llamada OPTIONS, que debera contener 2
+headers, uno permitiendo el origen y otro permitiendo los metodos, ademas, el metodo tambien debe tener el header que permita el acceso al origen. ej:
+ 
+app.delete('/movies/deleteMovie/:id', (req, res) => {
+  const origin = req.header('origin')
+  const { id } = req.params
+  const movieIndex = movies.findIndex(movie => movie.imdbID === id)
+
+  if (ACCEPTED_ORIGINS.includes(origin) || !origin) {
+    res.header('Access-Control-Allow-Origin', origin)
+  }
+
+  if (movieIndex === -1) {
+    return res.status(404).json({ message: 'Movie not found' })
+  }
+
+  movies.splice(movieIndex, 1)
+
+  console.log('Movie deleted')
+
+  return res.json({ message: 'Movie deleted' })
+})
+
+app.options('/movies/deleteMovie/:id', (req, res) => {
+  const origin = req.header('origin')
+
+  if (ACCEPTED_ORIGINS.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin)
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE')
+  }
+
+  res.send(200)
+})
+
+
+3. Existe una manera mas de solucionar el problema de CORS, que es la siguiente biblioteca:
+
+==> npm i cors -E
+
+Esta biblioteca de cors funciona como middleware y lo que hace es solucionar todos los problema de CORS poniendo un *, es decir, permitiendo todos los origenes.
+Esto esta bueno siempre que quieras permitir todos los origines porque te ahorra mucho trabajo y codigo, pero si por algun motivo se quiere limitar los dominios u
+origines que puedan realizar peticiones a nuestra API, deberiamos hacer las comprobaciones manuales. La biblioteca se importa y se aplica un app.use y 
+ya nos soluciona todo, ej:
+
+const cors = require('cors')
+
+app.use(cors())
+
+Tambien podemos agregar opciones dentro del cors():
+
+app.use(cors({
+  origin: (origin, callback) => {
+    const ACCEPTED_ORIGINS = [
+      'http://localhost:3000',
+      'http://localhost:8080',
+      'http://localhost:1234'
+    ]
+
+    if(ACCEPTED_ORIGINS.includes(origin)) {
+      return callback(null, true)
+    }
+
+    if(!origin){
+      return callback(null, true)
+    }
+
+    return callback(new Error('Not allowed by CORS'))
+  }
+}))

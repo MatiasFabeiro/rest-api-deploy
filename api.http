@@ -1,0 +1,36 @@
+### Get home page
+GET http://localhost:3000/
+
+### Get all the movies
+GET http://localhost:3000/movies
+
+### Get movie by id
+GET http://localhost:3000/movies/byID/tt0499549
+
+### Get movies by genre
+GET http://localhost:3000/movies/search?genre=Action&name=I+Am+Legend
+
+### Crear pelicula con POST
+POST http://localhost:3000/movies/createMovie
+Content-Type: application/json
+
+{
+  "title": "The Matrix",
+  "year": 1999,
+  "director": "Lana Wachowsky",
+  "genre": ["Action", "Sci-Fi"],
+  "rate": 9,
+  "poster": "https://i5.walmartimages.com/asr/5003a7b8-81c5-4803-beee-df5417f06bbe.1f75ffb05ff4e640f976691214312d6a.jpeg"
+}
+# "genre": "Action",
+
+### Actualizar una pelicula (una parte)
+PATCH http://localhost:3000/movies/patchMovie/e713ff69-cbe7-4499-9b3a-01f3ed586316
+Content-Type: application/json
+
+{
+  "year": 1996
+}
+
+### Borrar una pelicula por ID:
+DELETE http://localhost:3000/movies/deleteMovie/

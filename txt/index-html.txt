@@ -1,0 +1,52 @@
+En este caso, el método join('') se utiliza para concatenar todos los elementos de un array en una sola cadena de texto.
+
+En el código que proporcionaste, la función map se utiliza para transformar cada objeto movie en un fragmento de HTML, 
+y luego esos fragmentos se almacenan en un array. La función join('') se utiliza después para concatenar todos esos fragmentos 
+en una cadena de texto única.
+
+El argumento pasado a join (en este caso, una cadena vacía '') determina el separador que se insertará entre cada elemento del 
+array cuando se concatenan. Al proporcionar una cadena vacía, los elementos se concatenarán sin ningún espacio adicional entre ellos, 
+creando así una cadena de HTML continua sin separadores.
+
+
+==> Supongamos que la respuesta de la API es la siguiente:
+
+json:
+[
+  {
+    "title": "Movie 1",
+    "description": "Description 1"
+  },
+  {
+    "title": "Movie 2",
+    "description": "Description 2"
+  }
+]
+
+--> Sin join(''):
+
+html:
+<article>
+  <h2>Movie 1</h2>
+  <p>Description 1</p>
+</article>
+<article>
+  <h2>Movie 2</h2>
+  <p>Description 2</p>
+</article>
+
+--> Con join(''):
+
+html 2:
+<article>
+  <h2>Movie 1</h2>
+  <p>Description 1</p>
+</article><article>
+  <h2>Movie 2</h2>
+  <p>Description 2</p>
+</article>
+
+
+En el primer caso, sin join(''), cada fragmento HTML está separado por saltos de línea y espacios, ya que map crea un array de fragmentos.
+En el segundo caso, con join(''), todos los fragmentos se han concatenado sin ningún espacio adicional entre ellos, formando una cadena de HTML continua.
+Esto es beneficioso cuando deseas insertar directamente este HTML en el contenido de un elemento en el DOM.
